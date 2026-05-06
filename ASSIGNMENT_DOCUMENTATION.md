@@ -106,7 +106,20 @@ Document your development process with **minimum 3 entries** showing progression
 
 **Your Answer**:
 
-[Your answer here - 4-6 sentences with code examples]
+[The first race condition in the original code affects shared counters such as contextSwitchCount and totalWaitingTime. Without synchronization, multiple threads might execute increments at the same time, leading to "lost updates" where the final counts are lower than actual events. I solved this by using a ReentrantLock to ensure mutual exclusion contextSwitchLock.lock();
+try { 
+    contextSwitchCount++; 
+} finally { 
+    contextSwitchLock.unlock(); 
+}
+The second race condition involves the executionLog (ArrayList), where concurrent access can cause a ConcurrentModificationException. To prevent this, I wrapped the log access with a dedicated lock to ensure only one thread modifies the list at a time:logLock.lock();
+try { 
+    executionLog.add(message); 
+} finally { 
+    logLock.unlock(); 
+}
+
+]
 
 ---
 
