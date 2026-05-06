@@ -156,7 +156,7 @@ try {
 
 **Your Answer**:
 
-[Your answer here - explain coarse-grained vs fine-grained locking, independence of counters, concurrency implications. Show understanding of when to use each approach. 5-8 sentences expected.]
+[In my implementation for Task 1, I chose to use separate locks for each counter (fine-grained locking), specifically defining contextSwitchLock, completedProcessLock, and waitingTimeLock. I made this choice because the three counters are independent variables that do not need to be updated together in a single atomic transaction. The primary trade-off is that while fine-grained locking increases code complexity and memory overhead, it significantly reduces lock contention. In contrast, a single coarse-grained lock is easier to implement but would force threads to wait for each other even when updating completely different counters. Since these counters are independent, the fine-grained approach provides better concurrency because it allows multiple threads to update different counters simultaneously (e.g., one thread increments context switches while another updates total waiting time). This maximizes CPU utilization and improves the overall performance of the multithreaded scheduler.]
 
 ---
 
@@ -164,72 +164,121 @@ try {
 
 ### Critical Section #1: Counter Variables
 
-**Which variables**: 
+**Which variables**: contextSwitchCount, completedProcessCount, and totalWaitingTime.
 
-**Why they need protection**: 
+**Why they need protection**: These variables are shared across multiple threads. Without protection, a "Race Condition" occurs where multiple threads try to read and update the same variable simultaneously. This leads to "Lost Updates," resulting in incorrect final statistics (e.g., the total waiting time or process count being lower than the actual value).
 
-**Synchronization mechanism used**: 
+**Synchronization mechanism used**: Fine-grained ReentrantLock (specifically contextSwitchLock, completedProcessLock, and waitingTimeLock).
 
 **Code snippet**:
 ```java
 // Paste your implementation here
-```
+```public static void incrementContextSwitch() {
+    contextSwitchLock.lock();
+    try {
+        contextSwitchCount++;
+    } finally {
+        contextSwitchLock.unlock();
+    }
+}
 
-**Justification**: 
+public static void addWaitingTime(long time) {
+    waitingTimeLock.lock();
+    try {
+        totalWaitingTime += time;
+    } finally {
+        waitingTimeLock.unlock();
+    }
+}
+
+
+**Justification**: Using ReentrantLock ensures Mutual Exclusion, meaning only one thread can modify a specific counter at a time. The use of a try-finally block is crucial because it guarantees that the lock is released even if an exception occurs, preventing system deadlocks. Furthermore, using separate (fine-grained) locks for each counter improves performance by allowing different threads to update different counters at the same time.
 
 ---
 
 ### Critical Section #2: Execution Log
 
-**What resource**: 
+**What resource**: The executionLog which is a List<String> (specifically an ArrayList).
 
-**Why it needs protection**: 
+**Why it needs protection**: The ArrayList class in Java is not thread-safe. When multiple process threads try to call .add(message) simultaneously, it can lead to a ConcurrentModificationException, or worse, some log entries might be overwritten or lost because the internal pointer of the list is being modified by multiple threads at once.
 
-**Synchronization mechanism used**: 
+**Synchronization mechanism used**: A ReentrantLock named logLock.
 
 **Code snippet**:
 ```java
 // Paste your implementation here
-```
+```public static void logExecution(String message) {
+    logLock.lock();
+    try {
+        executionLog.add(message);
+    } finally {
+        logLock.unlock();
+    }
+}
 
-**Justification**: 
+
+**Justification**: By using logLock.lock(), I ensure that the add operation is "Atomic." This means only one thread can modify the structure of the list at any given time. The finally block ensures that the lock is released even if an error occurs during the addition to the list, preventing any thread from permanently blocking the logging system. This ensures a complete and accurate history of the simulation.
 
 ---
 
 ### Critical Section #3: CPU Semaphore
 
-**Purpose of semaphore**: 
+**Purpose of semaphore**: The purpose of the semaphore is to simulate a single-core CPU environment by ensuring Mutual Exclusion at the hardware resource level. It prevents multiple process threads from executing their burst time simultaneously, ensuring that only one process can occupy the CPU at any given moment.
 
-**Number of permits and why**: 
+**Number of permits and why**: 1 permit. I used a Binary Semaphore (1 permit) because the simulation is designed to model a single-core processor. Having only one permit ensures that if one thread "acquires" the CPU, all other threads must wait in the ready queue until the permit is "released."
 
-**Where implemented**: 
+**Where implemented**: It is implemented in the run() and runToCompletion() methods of the Process class, wrapping the entire execution logic where the process "runs" for its time quantum.
 
 **Code snippet**:
 ```java
 // Paste your implementation here
-```
+```public void run() {
+    try {
+        SharedResources.cpuSemaphore.acquire(); // Acquire CPU access
+        try {
+            // ... execution logic (burst time) ...
+            Thread.sleep(runTime); 
+            // ...
+        } finally {
+            SharedResources.cpuSemaphore.release(); // Release CPU access
+        }
+    } catch (InterruptedException e) {
+        System.out.println("Process interrupted.");
+    }
+}
+
 
 **Effect on program behavior**: 
-
+Without the semaphore, the simulation would be chaotic because multiple threads would try to print their progress bars and execution messages at the same time, leading to a garbled and unreadable terminal output. By implementing the semaphore, the program behavior becomes orderly and realistic; only one process's progress is displayed at a time, accurately mimicking how a real-world CPU handles process execution. It also ensures that the context switch count and timing calculations are logically sound, as processes are forced to wait their turn instead of "racing" to finish simultaneously.
 ---
 
 ## Part 4: Testing and Verification (2 marks)
 
 ### Test 1: Consistency Check
-**What I tested**: Running program multiple times to verify consistent results
+**What I tested**: Running the program multiple times to verify that the final statistics (context switches, completed processes, and average waiting time) remain consistent and correct across different executions.
 
-**Testing procedure**: 
+**Testing procedure**: # Commands used (run the program at least 5 times)
+# Compile the code
+javac SchedulerSimulationSync.java
+
+# Run the program 5 times and compare the final statistics
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+java SchedulerSimulationSync
+
 ```bash
 # Commands used (run the program at least 5 times)
 ```
 
 **Results**: 
-(Show that running multiple times produces consistent, correct results)
+(After running the program 5 times, the results were consistent. For the same input (Student ID and number of processes), the "Total Completed Processes" always matched the number of processes created, and the "Total Context Switches" was accurate. There were no ConcurrentModificationException errors, and the terminal output remained orderly without overlapping progress bars.)
 
 **Why synchronization is necessary**: 
-(Explain what race conditions COULD occur without synchronization, even if you didn't observe them. Explain which shared resources need protection and why.)
+(Synchronization is critical because, without it, Race Conditions would occur on shared resources. For example, if two threads updated totalWaitingTime simultaneously without a lock, one update could be overwritten (Lost Update), leading to incorrect averages. Similarly, the executionLog (ArrayList) is not thread-safe; without protection, concurrent access could crash the program. Synchronization ensures Data Integrity and Mutual Exclusion, making the simulation reliable and realistic.)
 
-**Conclusion**: 
+**Conclusion**: The implementation of ReentrantLock for shared variables and a Semaphore for CPU access successfully eliminated race conditions. The program now produces consistent, error-free results, demonstrating that the synchronization mechanisms are working as intended to manage shared resources in a multithreaded environment.
 
 ---
 
