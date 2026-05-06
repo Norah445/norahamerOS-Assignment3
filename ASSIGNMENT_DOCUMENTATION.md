@@ -340,32 +340,32 @@ If two threads try to update a counter at the exact same millisecond without syn
 
 ---
 
-## Part 6: GitHub Repository Information
+## Part 6: GitHub Repository
 
-**Repository URL**: 
+**Repository URL**: https://github.com/Norah445/norahamerOS-Assignment3.git
 
-**Number of commits**: 
+**Number of commits**: 4
 
 **Commit messages**: 
-1. 
-2. 
-3. 
-4. 
+1. Initial Commit: Project structure and basic Round Robin logic implementation.
+2. Task 1 & 2: Added shared counters and implemented fine-grained ReentrantLocks for thread safety.
+3. Task 3: Implemented Binary Semaphore for CPU resource management and added execution logging.
+4. Final Refactor: Added try-finally blocks for deadlock prevention and completed documentation.
 
 ---
 
 ## Summary
 
-**Total time spent on assignment**: 
+**Total time spent on assignment**: Approximately 8-10 hours (including coding, debugging synchronization issues, and documentation).
 
 **Key takeaways**: 
-1. 
-2. 
-3. 
+1. Concurrency is not Parallelism: I learned that even on a single-core simulation, managing the "interleaving" of threads is crucial to prevent data
+2. The Importance of Atomicity: I understood that even a simple operation like count++ is not safe in multithreading because it involves three hidden steps (read, modify, write).
+3. Defensive Programming: Using try-finally blocks is a best practice that ensures system stability even when unexpected errors occur.
 
-**Most challenging aspect**: 
+**Most challenging aspect**: The most challenging part was debugging the Race Conditions in the execution log. At first, some log messages were missing or appearing out of order. It took time to realize that even though the console output looked okay, the underlying ArrayList was losing data, which taught me to always protect non-thread-safe collections.
 
-**What I'm most proud of**: 
+**What I'm most proud of**: I am most proud of implementing a Fine-grained locking strategy. Instead of using one big lock that slows everything down, I managed to use separate locks for each counter, which makes the simulation much more efficient and demonstrates a professional approach to thread safety.
 
 ---
 
