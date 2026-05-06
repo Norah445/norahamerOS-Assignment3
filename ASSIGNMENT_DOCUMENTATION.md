@@ -31,42 +31,42 @@
 
 Document your development process with **minimum 3 entries** showing progression:
 
-### Entry 1 - [Date, Time]
-**What I implemented**: 
+### Entry 1 - [May 1,3Pm]
+**What I implemented**: Forked the repository, renamed it according to the requirements, and updated my Student ID in SchedulerSimulationSync.java. I also began Task 1 by identifying the shared counter variables.
 
-**Challenges encountered**: 
+**Challenges encountered**: Found that running multiple threads caused race conditions where the totalWaitingTime and completedProcessCount were inconsistent across different runs
 
-**How I solved it**: 
+**How I solved it**: Implemented a ReentrantLock to protect these variables, ensuring that only one thread can update them at a time.
 
-**Testing approach**: 
+**Testing approach**: Ran the simulation several times to check if the final counts remained stable and correct
 
-**Time spent**: 
-
----
-
-### Entry 2 - [Date, Time]
-**What I implemented**: 
-
-**Challenges encountered**: 
-
-**How I solved it**: 
-
-**Testing approach**: 
-
-**Time spent**: 
+**Time spent**: 1.5 hours.
 
 ---
 
-### Entry 3 - [Date, Time]
-**What I implemented**: 
+### Entry 2 - [May2,12AM]
+**What I implemented**: Completed Task 2 and Task 3 by adding synchronization to the execution log and the CPU access control
 
-**Challenges encountered**: 
+**Challenges encountered**: Encountered a ConcurrentModificationException when multiple threads tried to add entries to the ArrayList simultaneously
 
-**How I solved it**: 
+**How I solved it**: Used a ReentrantLock to wrap the log access and implemented a Semaphore with 1 permit to act as a binary semaphore for the CPU. I ensured all locks are released in a finally block.
 
-**Testing approach**: 
+**Testing approach**: Verified that the execution log entries are in the correct order and no exceptions are thrown during runtime.
 
-**Time spent**: 
+**Time spent**: 1hour
+
+---
+
+### Entry 3 - [May5,1PM]
+**What I implemented**: Finalized the ASSIGNMENT_DOCUMENTATION.md and recorded the video demonstration.
+
+**Challenges encountered**: Fitting the code walkthrough, explanation of race conditions, and the run demonstration within the 5-minute limit.
+
+**How I solved it**: Created a script to stay focused on the synchronization logic and used a screen recorder to show the GitHub commit history and the code execution clearly
+
+**Testing approach**: Tested the video link in an incognito window to ensure the Google Drive permissions were set to "Anyone with the link can view".
+
+**Time spent**: 3hours
 
 ---
 
