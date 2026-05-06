@@ -128,7 +128,7 @@ try {
 
 **Your Answer**:
 
-[Your answer here - explain your implementation choices]
+[The primary difference is that a ReentrantLock is a mutual exclusion mechanism (mutex) that allows only one thread to access a resource at a time, whereas a Semaphore manages a set of permits to control how many threads can access a resource simultaneously. In my code, I used ReentrantLock for fine-grained protection of shared variables like contextSwitchCount and executionLog to ensure data integrity during updates. On the other hand, I used a Semaphore with one permit (binary semaphore) to control access to the CPU. This choice ensures that while multiple threads may exist in the simulation, only one can "possess" the CPU and execute its burst time at any given moment, accurately simulating a single-core processor environment. Using both allows for efficient synchronization: locks protect the data, while the semaphore manages the hardware resource.]
 
 ---
 
@@ -137,7 +137,13 @@ try {
 
 **Your Answer**:
 
-[Your answer here - reference try-finally blocks, lock ordering, etc.]
+[A deadlock is a situation in concurrent programming where two or more threads are blocked forever, each waiting for a resource held by the other. To prevent this, two key techniques are used: Lock Ordering, which ensures all threads acquire locks in a predefined sequence to avoid circular wait, and the Timeout/Resource Acquisition strategy. In my code, I primarily used the try-finally block technique to ensure that every acquired lock is released regardless of whether the execution succeeds or failscontextSwitchLock.lock();
+try {
+    contextSwitchCount++;
+} finally {
+    contextSwitchLock.unlock(); // Prevents deadlock by ensuring release
+}Additionally, I used Fine-grained Locking (separate locks for separate resources), which reduces the chance of multiple threads competing for the same lock and prevents the "Hold and Wait" condition that typically leads to deadlocks. This ensures the scheduler remains responsive and never enters a frozen state.
+]
 
 ---
 
